@@ -64,7 +64,7 @@ pip install anndata
 ```
 
 **Runtime deps:** `numpy`, `scipy`, `pandas`
-**Optional:** `anndata` (for H5AD); `R` + `Seurat` + `anndata` R package (for RDS)
+**Optional:** `anndata` (for H5AD); `R` + `Seurat` + `anndata` + `qs` R packages (for RDS/QS; requires conda — see [Quick start](#quick-start-conda) above)
 
 ---
 
