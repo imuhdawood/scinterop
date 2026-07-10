@@ -1,6 +1,6 @@
 """scinterop — Single-cell format conversion toolkit.
 
-Convert between H5AD (AnnData), RDS (Seurat), and 10X MTX formats
+Convert between H5AD (AnnData), RDS/QS (Seurat), and 10X MTX formats
 while preserving expression data, metadata, dimensional reductions,
 and layer information.
 """
@@ -27,7 +27,7 @@ def read(path: str, **kwargs: Any) -> CanonicalObject:
     """Read a single-cell data file into a CanonicalObject.
 
     Automatically detects format and dispatches to the appropriate
-    reader (H5AD, RDS, or MTX).
+    reader (H5AD, RDS/QS, or MTX).
 
     Args:
         path: Path to a single-cell data file.
@@ -129,6 +129,8 @@ def _resolve_suffix(path):
     if ext == ".h5ad":
         return "h5ad"
     elif ext == ".rds":
+        return "rds"
+    elif ext == ".qs":
         return "rds"
     elif ext == ".gz":
         stem = path.with_suffix("").suffix.lower()

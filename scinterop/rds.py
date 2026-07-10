@@ -1,8 +1,10 @@
-"""RDS format adapter — read/write Seurat R objects via an R bridge.
+"""RDS/QS format adapter — read/write Seurat R objects via an R bridge.
 
+Supports both ``.rds`` and ``.qs`` (qs serialization) file formats.
 Requires R with the ``anndata`` and (for Seurat objects) ``Seurat``
-R packages installed. Conversion is done by writing an intermediate
-H5AD file and invoking R as a subprocess.
+R packages installed. For ``.qs`` files, the ``qs`` R package is also
+required. Conversion is done by writing an intermediate H5AD file and
+invoking R as a subprocess.
 """
 
 from __future__ import annotations
@@ -25,13 +27,21 @@ _scratch = ScratchManager()
 
 
 READ_R_SCRIPT_TEMPLATE = r"""{header}
-# Read RDS and save as H5AD via anndata R package
+# Read RDS/QS and save as H5AD via anndata R package
 
-input_rds <- {input_rds!r}
+input_path <- {input_rds!r}
 output_h5ad <- {output_h5ad!r}
 
-# Load RDS
-obj <- readRDS(input_rds)
+# Load input file (RDS or QS)
+if (grepl("\\.qs$", input_path, ignore.case = TRUE)) {{
+    if (!requireNamespace("qs", quietly = TRUE)) {{
+        stop("R package 'qs' is required for .qs files. Install with: install.packages('qs')")
+    }}
+    library(qs)
+    obj <- qread(input_path)
+}} else {{
+    obj <- readRDS(input_path)
+}}
 
 # Determine if Seurat
 is_seurat <- inherits(obj, "Seurat")
@@ -143,10 +153,10 @@ if (is_seurat) {{
 """
 
 WRITE_LIST_R_SCRIPT_TEMPLATE = r"""{header}
-# Convert H5AD to R named list and save as RDS
+# Convert H5AD to R named list and save as RDS/QS
 
 input_h5ad <- {input_h5ad!r}
-output_rds <- {output_rds!r}
+output_path <- {output_rds!r}
 
 suppressPackageStartupMessages({{
     if (!requireNamespace("anndata", quietly = TRUE)) {{
@@ -185,15 +195,23 @@ if (length(layer_names) > 0) {{
 
 result$uns <- adata$uns
 
-saveRDS(result, output_rds)
-cat("R list saved to:", output_rds, "\n")
+if (grepl("\\.qs$", output_path, ignore.case = TRUE)) {{
+    if (!requireNamespace("qs", quietly = TRUE)) {{
+        stop("R package 'qs' is required for .qs files. Install with: install.packages('qs')")
+    }}
+    library(qs)
+    qsave(result, output_path)
+}} else {{
+    saveRDS(result, output_path)
+}}
+cat("R list saved to:", output_path, "\n")
 """
 
 WRITE_SEURAT_R_SCRIPT_TEMPLATE = r"""{header}
-# Convert H5AD to Seurat object and save as RDS
+# Convert H5AD to Seurat object and save as RDS/QS
 
 input_h5ad <- {input_h5ad!r}
-output_rds <- {output_rds!r}
+output_path <- {output_rds!r}
 
 suppressPackageStartupMessages({{
     if (!requireNamespace("anndata", quietly = TRUE)) {{
@@ -265,18 +283,26 @@ for (key in obsm_names) {{
     )
 }}
 
-saveRDS(seurat_obj, output_rds)
-cat("Seurat object saved to:", output_rds, "\n")
+if (grepl("\\.qs$", output_path, ignore.case = TRUE)) {{
+    if (!requireNamespace("qs", quietly = TRUE)) {{
+        stop("R package 'qs' is required for .qs files. Install with: install.packages('qs')")
+    }}
+    library(qs)
+    qsave(seurat_obj, output_path)
+}} else {{
+    saveRDS(seurat_obj, output_path)
+}}
+cat("Seurat object saved to:", output_path, "\n")
 """
 
 
 def read_rds(path: str | Path, *, r_exe: str | None = None) -> CanonicalObject:
-    """Read an RDS file (Seurat or plain R list) into a CanonicalObject.
+    """Read an RDS or QS file (Seurat or plain R list) into a CanonicalObject.
 
     Uses an intermediate H5AD file written by the R ``anndata`` package.
 
     Args:
-        path: Path to an ``.rds`` file.
+        path: Path to an ``.rds`` or ``.qs`` file.
         r_exe: Path to Rscript executable.
 
     Returns:
@@ -326,6 +352,9 @@ def read_rds(path: str | Path, *, r_exe: str | None = None) -> CanonicalObject:
         _scratch.cleanup(ctx)
 
 
+OUTPUT_EXTENSIONS: set[str] = {".rds", ".qs"}
+
+
 def write_rds(
     obj: CanonicalObject,
     path: str | Path,
@@ -333,13 +362,13 @@ def write_rds(
     seurat: bool = False,
     r_exe: str | None = None,
 ) -> str:
-    """Write a CanonicalObject to an RDS file.
+    """Write a CanonicalObject to an RDS or QS file.
 
     Uses an intermediate H5AD file and the R ``anndata`` package.
 
     Args:
         obj: The object to write.
-        path: Output ``.rds`` file path (extension added if missing).
+        path: Output ``.rds`` or ``.qs`` file path (extension added if missing).
         seurat: If True, create a Seurat object; otherwise a plain R list.
         r_exe: Path to Rscript executable.
 
@@ -352,7 +381,7 @@ def write_rds(
     """
     assert_valid(obj)
     path = Path(path)
-    if not path.suffix.lower() == ".rds":
+    if path.suffix.lower() not in OUTPUT_EXTENSIONS:
         path = path.with_suffix(".rds")
 
     resolved_r = resolve_r_exe(r_exe)

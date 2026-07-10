@@ -1,8 +1,8 @@
 """Auto-detect single-cell data formats from file paths.
 
 The :func:`detect` function identifies format by file extension or
-directory contents without reading the full data. Supports H5AD, RDS,
-and 10X MTX formats.
+directory contents without reading the full data. Supports H5AD,
+RDS, QS, and 10X MTX formats.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 EXTENSION_MAP: dict[str, str] = {
     ".h5ad": "h5ad",
     ".rds": "rds",
+    ".qs": "rds",
     ".mtx": "mtx",
 }
 
