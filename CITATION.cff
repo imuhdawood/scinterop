@@ -5,7 +5,7 @@ authors:
     given-names: Muhammad
     orcid: ""
 title: "scinterop: Single-cell data interoperability between R and Python formats"
-version: 0.1.0
+version: 0.2.0
 date-released: 2026-07-10
 url: "https://github.com/imuhdawood/scinterop"
 repository-code: "https://github.com/imuhdawood/scinterop"

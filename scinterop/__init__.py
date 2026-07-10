@@ -20,7 +20,7 @@ from .schema import CanonicalObject
 from .detect import detect, Detection
 from .validate import validate, assert_valid, ValidationResult
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 def read(path: str, **kwargs: Any) -> CanonicalObject:
