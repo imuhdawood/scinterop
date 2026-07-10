@@ -1,11 +1,11 @@
-# scinterop — Single-Cell Interoperability
+# scinterop: Single-Cell Interoperability
 
 Bidirectional conversion between single-cell data formats (H5AD, 10X MTX, RDS/Seurat) with explicit environment paths, provenance logging, and scratch management.
 
 **Core design principles:**
-- No implicit global state — all paths are explicit
+- No implicit global state: all paths are explicit
 - Separate format adapters from execution runners
-- No `rpy2` dependency — R bridge uses subprocess + intermediate H5AD
+- No `rpy2` dependency: R bridge uses subprocess + intermediate H5AD
 - All failures localize to the adapter that failed
 - Every conversion logs a JSON provenance record
 
@@ -15,7 +15,7 @@ Bidirectional conversion between single-cell data formats (H5AD, 10X MTX, RDS/Se
 
 - [Install](#install)
 - [Architecture overview](#architecture-overview)
-- [CanonicalObject — the core data structure](#canonicalobject--the-core-data-structure)
+- [CanonicalObject, the core data structure](#canonicalobject--the-core-data-structure)
 - [Format detection](#format-detection)
 - [Format adapters](#format-adapters)
   - [H5AD adapter (`scinterop.h5ad`)](#h5ad-adapter-scinteroph5ad)
@@ -102,7 +102,7 @@ pip install anndata
 
 ---
 
-## CanonicalObject — the core data structure
+## CanonicalObject, the core data structure
 
 A plain Python dataclass with no external dependencies beyond `numpy`, `scipy`, `pandas`. This is the neutral representation that all adapters convert to and from.
 
@@ -182,7 +182,7 @@ result.details # -> {"extension": ".h5ad"}
 | Extension | Format constant | Also matches |
 |-----------|----------------|--------------|
 | `.h5ad` | `"h5ad"` | `.h5` (with anndata signature) |
-| `.rds` | `"rds"` | — |
+| `.rds` | `"rds"` | (none) |
 | `.mtx` | `"mtx"` | `.mtx.gz` |
 | Directory | `"mtx"` | Contains 10X trio files |
 
@@ -244,7 +244,7 @@ Read and write 10X Genomics MTX format (directory with `matrix.mtx`, `barcodes.t
 # Read from 10X output directory
 obj = si.mtx.read_mtx("cellranger_output/")
 
-# Read single .mtx file (no barcodes/features — auto-generates names)
+# Read single .mtx file (no barcodes/features; auto-generates names)
 obj = si.mtx.read_mtx("matrix.mtx.gz")
 
 # Write to 10X format
@@ -318,13 +318,13 @@ obj = si.rds.read_rds("seurat_object.rds")
 - Writing (Seurat): `anndata`, `Seurat`, `Matrix`
 - Writing (list): `anndata`
 
-**Installing R dependencies (conda — recommended):**
+**Installing R dependencies (conda, recommended):**
 ```bash
 conda install -n scinterop r-base r-seurat r-matrix r-anndata \
   -c conda-forge -c bioconda -y
 ```
 
-This installs R 4.5 + Seurat 5.5 + Matrix + anndata R package in your scinterop env — no separate CRAN install or compilation needed.
+This installs R 4.5 + Seurat 5.5 + Matrix + anndata R package in your scinterop env, no separate CRAN install or compilation needed.
 
 **Verification:**
 ```bash
@@ -339,7 +339,7 @@ RdsAdapterError: Failed to write RDS file 'out.rds': R script failed with code 1
 ```
 
 **Seurat v5 compatibility:**
-The adapter auto-detects the SeuratObject version at runtime and uses the correct API — `layer="counts"` for Seurat v5+, `slot="counts"` for Seurat v4.
+The adapter auto-detects the SeuratObject version at runtime and uses the correct API: `layer="counts"` for Seurat v5+, `slot="counts"` for Seurat v4.
 
 ---
 
@@ -724,7 +724,7 @@ def write_loom(obj, path):
     return str(path)
 ```
 
-2. **Register in `detect.py`** — add the extension to `EXTENSION_MAP`:
+2. **Register in `detect.py`**: add the extension to `EXTENSION_MAP`:
 
 ```python
 EXTENSION_MAP = {
@@ -735,7 +735,7 @@ EXTENSION_MAP = {
 }
 ```
 
-3. **Register in `__init__.py`** — add the format to `read()` and `convert()`:
+3. **Register in `__init__.py`**: add the format to `read()` and `convert()`:
 
 ```python
 def read(path, **kwargs):
@@ -746,3 +746,21 @@ def read(path, **kwargs):
 ```
 
 That's it. The adapter owns all format-specific logic; the rest of the package is format-agnostic.
+
+---
+
+## Citation
+
+If you use scinterop in your work, please cite it:
+
+```bibtex
+@misc{scinterop,
+  author = {Muhammad Dawood},
+  title  = {scinterop: Single-cell data interoperability between R and Python formats},
+  year   = {2026},
+  publisher = {GitHub},
+  url    = {https://github.com/imuhdawood/scinterop}
+}
+```
+
+See [CITATION.cff](CITATION.cff) for the machine-readable citation metadata.

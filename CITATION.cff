@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use scinterop in your work, please cite it."
+authors:
+  - family-names: Dawood
+    given-names: Muhammad
+    orcid: ""
+title: "scinterop: Single-cell data interoperability between R and Python formats"
+version: 0.1.0
+date-released: 2026-07-10
+url: "https://github.com/imuhdawood/scinterop"
+repository-code: "https://github.com/imuhdawood/scinterop"
+license: "MIT"
+keywords:
+  - single-cell
+  - bioinformatics
+  - seurat
+  - anndata
+  - h5ad
+  - rds
+  - mtx
