@@ -44,8 +44,13 @@ if (is_seurat) {{
     }}
     library(Seurat)
 
-    counts <- GetAssayData(obj, assay = "RNA", slot = "counts")
-    mat <- t(as.matrix(counts))
+    # Seurat v5+: use layer; Seurat v4: use slot
+    if (packageVersion("SeuratObject") >= "5.0.0") {{
+        counts <- GetAssayData(obj, assay = "RNA", layer = "counts")
+    }} else {{
+        counts <- GetAssayData(obj, assay = "RNA", slot = "counts")
+    }}
+    mat <- t(counts)
 
     meta <- obj[[]]
     meta_names <- rownames(meta)
@@ -145,7 +150,7 @@ suppressPackageStartupMessages({{
 
 adata <- read_h5ad(input_h5ad)
 
-X <- as.matrix(adata$X)
+X <- adata$X
 obs <- adata$obs
 var <- adata$var
 
@@ -208,8 +213,8 @@ to_dgC <- function(x) {{
 
 adata <- read_h5ad(input_h5ad)
 
-# Expression matrix: cells x genes -> genes x cells
-counts <- t(as.matrix(adata$X))
+# Expression matrix: cells x genes -> genes x cells (keep sparse)
+counts <- t(adata$X)
 counts <- to_dgC(counts)
 
 # Metadata

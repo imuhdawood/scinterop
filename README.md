@@ -37,6 +37,29 @@ Bidirectional conversion between single-cell data formats (H5AD, 10X MTX, RDS/Se
 
 ## Install
 
+### Quick start (conda)
+
+```bash
+# Create or use existing scinterop conda environment
+conda activate scinterop
+
+# Install scinterop package
+pip install /path/to/scinterop
+```
+
+### Full environment (with R/Seurat support)
+
+```bash
+# Create from the lockfile
+conda env create -f environment.yml
+
+# Or install R packages into an existing env:
+conda install -n scinterop r-base r-seurat r-matrix r-anndata \
+  -c conda-forge -c bioconda -y
+```
+
+### Minimal (pip only)
+
 ```bash
 # From source
 pip install /path/to/scinterop
@@ -50,7 +73,7 @@ pip install anndata
 
 **Runtime dependencies:** `numpy`, `scipy`, `pandas` (always required).
 
-**Optional dependencies:** `anndata` (required for H5AD adapter); `Rscript` with `anndata` R package (required for RDS adapter).
+**Optional dependencies:** `anndata` (required for H5AD adapter); `R` with `Seurat` + `anndata` R packages (required for RDS adapter).
 
 ---
 
@@ -295,12 +318,28 @@ obj = si.rds.read_rds("seurat_object.rds")
 - Writing (Seurat): `anndata`, `Seurat`, `Matrix`
 - Writing (list): `anndata`
 
+**Installing R dependencies (conda — recommended):**
+```bash
+conda install -n scinterop r-base r-seurat r-matrix r-anndata \
+  -c conda-forge -c bioconda -y
+```
+
+This installs R 4.5 + Seurat 5.5 + Matrix + anndata R package in your scinterop env — no separate CRAN install or compilation needed.
+
+**Verification:**
+```bash
+conda run -n scinterop R -e 'library(anndata); library(Seurat); cat("OK\n")'
+```
+
 The R script fails with a clear message if packages are missing:
 ```
 RdsAdapterError: Failed to write RDS file 'out.rds': R script failed with code 1.
   stderr:
     Error: R package 'Seurat' is required. Install with: install.packages('Seurat')
 ```
+
+**Seurat v5 compatibility:**
+The adapter auto-detects the SeuratObject version at runtime and uses the correct API — `layer="counts"` for Seurat v5+, `slot="counts"` for Seurat v4.
 
 ---
 
