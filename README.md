@@ -46,7 +46,7 @@ conda env create -n scinterop -f https://raw.githubusercontent.com/imuhdawood/sc
 conda activate scinterop
 ```
 
-This gives you Python + R + Seurat + anndata (R package) in one shot -- everything needed for all format adapters.
+Includes Python, R, Seurat, and the anndata R package. No additional installation steps required.
 
 ### Minimal (pip only)
 
@@ -83,7 +83,7 @@ pip install anndata
 └───────────────┴────────────────────┴────────────┴────────────────┘
 ```
 
-**Three API layers (all consistent):**
+**Three API layers:**
 
 | Layer | Example | Purpose |
 |-------|---------|---------|
@@ -736,7 +736,7 @@ def read(path, **kwargs):
     ...
 ```
 
-That's it. The adapter owns all format-specific logic; the rest of the package is format-agnostic.
+Each adapter encapsulates all format-specific logic, keeping the rest of the package format-agnostic.
 
 ---
 
