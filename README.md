@@ -39,41 +39,32 @@ Bidirectional conversion between single-cell data formats (H5AD, 10X MTX, RDS/Se
 
 ### Quick start (conda)
 
+Create the environment directly from the GitHub-hosted `environment.yml`, then install scinterop:
+
 ```bash
-# Create or use existing scinterop conda environment
+conda env create -n scinterop -f https://raw.githubusercontent.com/imuhdawood/scinterop/main/environment.yml
 conda activate scinterop
-
-# Install scinterop package
-pip install /path/to/scinterop
 ```
 
-### Full environment (with R/Seurat support)
-
-```bash
-# Create from the lockfile
-conda env create -f environment.yml
-
-# Or install R packages into an existing env:
-conda install -n scinterop r-base r-seurat r-matrix r-anndata \
-  -c conda-forge -c bioconda -y
-```
+This gives you Python + R + Seurat + anndata (R package) in one shot -- everything needed for all format adapters.
 
 ### Minimal (pip only)
 
+If you already have a Python environment with numpy, scipy, and pandas:
+
 ```bash
-# From source
-pip install /path/to/scinterop
+# Install from GitHub
+pip install git+https://github.com/imuhdawood/scinterop.git
 
 # Editable install (for development)
 pip install -e /path/to/scinterop
 
-# Install with H5AD support (optional)
+# Optional: add H5AD support
 pip install anndata
 ```
 
-**Runtime dependencies:** `numpy`, `scipy`, `pandas` (always required).
-
-**Optional dependencies:** `anndata` (required for H5AD adapter); `R` with `Seurat` + `anndata` R packages (required for RDS adapter).
+**Runtime deps:** `numpy`, `scipy`, `pandas`
+**Optional:** `anndata` (for H5AD); `R` + `Seurat` + `anndata` R package (for RDS)
 
 ---
 
