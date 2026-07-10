@@ -8,28 +8,45 @@ version = "0.1.0"
 description = "Single-cell data interoperability between R and Python formats"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Qwi813"},
 ]
+keywords = ["single-cell", "bioinformatics", "seurat", "anndata", "h5ad", "rds", "mtx"]
 dependencies = [
     "numpy>=1.20",
     "scipy>=1.8",
     "pandas>=1.5",
 ]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
 
+[project.urls]
+Homepage = "https://github.com/imuhdawood/scinterop"
+Repository = "https://github.com/imuhdawood/scinterop"
+Issues = "https://github.com/imuhdawood/scinterop/issues"
+
 [project.optional-dependencies]
 anndata = ["anndata>=0.10"]
-dev = ["pytest", "pytest-cov"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "mkdocs",
+    "mkdocs-material",
+]
 
 [project.scripts]
 scinterop = "scinterop.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["scinterop*"]
+
+[tool.pytest.ini_options]
+testpaths = ["scinterop/tests"]

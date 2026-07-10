@@ -1,3 +1,9 @@
+"""Provenance and metadata logging for conversions.
+
+Records input/output paths, formats, timestamps, success status,
+and runtime into a JSON-per-line log file or in-memory dict.
+"""
+
 from __future__ import annotations
 
 import json
@@ -26,6 +32,29 @@ def write_conversion_record(
     metadata: dict[str, Any] | None = None,
     log_dir: str | Path | None = None,
 ) -> dict[str, Any]:
+    """Write a single conversion provenance record.
+
+    The record is returned as a dict and optionally appended to a
+    JSONL log file under ``log_dir``.
+
+    Args:
+        input_path: Source file path.
+        input_format: Source format string.
+        output_path: Output file path.
+        output_format: Target format string.
+        success: Whether the conversion succeeded.
+        runtime_s: Wall-clock runtime in seconds.
+        error: Error message if conversion failed.
+        metadata: Extra information to attach to the record.
+        log_dir: If set, append the record to ``provenance.jsonl``
+            in this directory.
+
+    Returns:
+        The provenance record dictionary.
+
+    Raises:
+        ProvenanceError: If writing the log file fails.
+    """
     record = _build_record(
         input_path=input_path,
         input_format=input_format,
@@ -96,6 +125,18 @@ def _append_jsonl(record: dict, path: Path) -> None:
 
 
 def read_provenance_log(path: str | Path) -> list[dict[str, Any]]:
+    """Read a provenance JSONL log file.
+
+    Args:
+        path: Path to the JSONL log file.
+
+    Returns:
+        List of provenance record dicts.
+
+    Raises:
+        ProvenanceError: If the file is missing, unreadable, or
+            contains invalid JSON.
+    """
     path = Path(path)
     if not path.exists():
         raise ProvenanceError(f"Provenance log not found: {path}")

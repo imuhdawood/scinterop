@@ -1,3 +1,9 @@
+"""Python subprocess execution for format conversions.
+
+Runs Python scripts (file paths or inline strings) in a subprocess
+with configurable environment, working directory, and timeout.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -13,6 +19,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PythonExecResult:
+    """Result of a Python subprocess execution.
+
+    Attributes:
+        returncode: Process exit code.
+        stdout: Captured standard output text.
+        stderr: Captured standard error text.
+        log_path: Path to the log file (if ``log_path`` was set).
+    """
+
     returncode: int
     stdout: str
     stderr: str
@@ -20,6 +35,17 @@ class PythonExecResult:
 
 
 def resolve_python_exe(python_exe: str | None = None) -> str:
+    """Resolve the Python executable path.
+
+    Priority: explicit argument, ``SCINTEROP_PYTHON_EXE`` env var,
+    ``"python"`` fallback.
+
+    Args:
+        python_exe: Explicit path to Python interpreter.
+
+    Returns:
+        Resolved Python executable path.
+    """
     if python_exe is not None:
         return python_exe
     env_py = os.environ.get("SCINTEROP_PYTHON_EXE")
@@ -38,6 +64,28 @@ def run_python(
     timeout: int | None = 600,
     env: dict[str, str] | None = None,
 ) -> PythonExecResult:
+    """Run a Python script or snippet in a subprocess.
+
+    Inline scripts (strings containing newlines) are written to
+    a temporary file first.
+
+    Args:
+        script: Path to a ``.py`` file, or inline Python code.
+        python_exe: Python interpreter path (see :func:`resolve_python_exe`).
+        conda_env: If set, run via ``conda run -n <env> python``.
+        args: Additional arguments passed to the script.
+        log_path: If set, write stdout/stderr to this file.
+        workdir: Working directory for the subprocess.
+        timeout: Maximum wall-clock seconds before killing (default 600).
+        env: Extra environment variables for the subprocess.
+
+    Returns:
+        A :class:`PythonExecResult` with the process output.
+
+    Raises:
+        PythonExecError: If the script fails, times out, or the
+            executable is not found.
+    """
     run_env = os.environ.copy()
     if env:
         run_env.update(env)

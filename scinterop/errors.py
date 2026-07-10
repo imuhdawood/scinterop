@@ -1,51 +1,72 @@
+"""Custom exception hierarchy for scinterop.
+
+All exceptions inherit from :class:`ScinteropError`. Use this base
+class to catch any scinterop error generically.
+
+Exception tree::
+
+    ScinteropError
+    ├── DetectionError
+    ├── FormatAdapterError
+    │   ├── MtxAdapterError
+    │   ├── H5adAdapterError
+    │   └── RdsAdapterError
+    ├── ValidationError
+    ├── ExecError
+    │   ├── RExecError
+    │   └── PythonExecError
+    ├── CacheError
+    └── ProvenanceError
+"""
+
 import logging
 
 logger = logging.getLogger("scinterop")
 
 
 class ScinteropError(Exception):
-    pass
+    """Base exception for all scinterop errors."""
 
 
 class DetectionError(ScinteropError):
-    pass
+    """Raised when format detection fails on a file or directory."""
 
 
 class FormatAdapterError(ScinteropError):
-    pass
+    """Base exception for format-specific adapter failures."""
 
 
 class MtxAdapterError(FormatAdapterError):
-    pass
+    """Raised on MTX read/write failures."""
 
 
 class H5adAdapterError(FormatAdapterError):
-    pass
+    """Raised on H5AD read/write failures."""
 
 
 class RdsAdapterError(FormatAdapterError):
-    pass
+    """Raised on RDS read/write failures."""
 
 
 class ValidationError(ScinteropError):
-    pass
+    """Raised when a CanonicalObject fails structural validation."""
 
 
 class ExecError(ScinteropError):
-    pass
+    """Base exception for external script execution failures."""
 
 
 class RExecError(ExecError):
-    pass
+    """Raised when an R script fails or times out."""
 
 
 class PythonExecError(ExecError):
-    pass
+    """Raised when a Python script fails or times out."""
 
 
 class CacheError(ScinteropError):
-    pass
+    """Raised on scratch directory or temp file failures."""
 
 
 class ProvenanceError(ScinteropError):
-    pass
+    """Raised on provenance log read/write failures."""

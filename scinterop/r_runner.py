@@ -1,3 +1,9 @@
+"""R subprocess execution for Seurat-based conversions.
+
+Runs R scripts (file paths or inline strings) via ``Rscript``
+with configurable timeout, working directory, and environment.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -14,6 +20,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class RExecResult:
+    """Result of an R subprocess execution.
+
+    Attributes:
+        returncode: Process exit code.
+        stdout: Captured standard output text.
+        stderr: Captured standard error text.
+        log_path: Path to the log file (if ``log_path`` was set).
+    """
+
     returncode: int
     stdout: str
     stderr: str
@@ -21,6 +36,17 @@ class RExecResult:
 
 
 def resolve_r_exe(r_exe: str | None = None) -> str:
+    """Resolve the Rscript executable path.
+
+    Priority: explicit argument, ``SCINTEROP_R_EXE`` env var,
+    ``"Rscript"`` fallback.
+
+    Args:
+        r_exe: Explicit path to Rscript.
+
+    Returns:
+        Resolved Rscript path.
+    """
     if r_exe is not None:
         return r_exe
     env_r = os.environ.get("SCINTEROP_R_EXE")
@@ -38,6 +64,27 @@ def run_r(
     timeout: int | None = 600,
     env: dict[str, str] | None = None,
 ) -> RExecResult:
+    """Run an R script or snippet in a subprocess.
+
+    Inline scripts (strings containing newlines) are written to
+    a temporary ``.R`` file first.
+
+    Args:
+        script: Path to a ``.R`` file, or inline R code.
+        r_exe: Rscript path (see :func:`resolve_r_exe`).
+        args: Additional arguments passed to the script.
+        log_path: If set, write stdout/stderr to this file.
+        workdir: Working directory for the subprocess.
+        timeout: Maximum wall-clock seconds before killing (default 600).
+        env: Extra environment variables for the subprocess.
+
+    Returns:
+        An :class:`RExecResult` with the process output.
+
+    Raises:
+        RExecError: If the script fails, times out, or the
+            executable is not found.
+    """
     resolved_r = resolve_r_exe(r_exe)
     logger.info("Running R script with: %s", resolved_r)
 

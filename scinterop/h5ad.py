@@ -1,3 +1,9 @@
+"""H5AD format adapter — read/write AnnData files.
+
+Requires the ``anndata`` Python package.
+Maps all AnnData slots to/from :class:`CanonicalObject` fields.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -15,6 +21,21 @@ logger = logging.getLogger(__name__)
 
 
 def read_h5ad(path: str | Path) -> CanonicalObject:
+    """Read an H5AD file into a CanonicalObject.
+
+    Supports ``X``, ``obs``, ``var``, ``obsm``, ``layers``, ``uns``,
+    and ``raw``. Raw counts are loaded as a nested CanonicalObject.
+
+    Args:
+        path: Path to an ``.h5ad`` file.
+
+    Returns:
+        A validated CanonicalObject.
+
+    Raises:
+        H5adAdapterError: If the file doesn't exist, can't be read,
+            or ``adata.X`` is None.
+    """
     path = Path(path)
     if not path.exists():
         raise H5adAdapterError(f"File does not exist: {path}")
@@ -82,6 +103,21 @@ def read_h5ad(path: str | Path) -> CanonicalObject:
 
 
 def write_h5ad(obj: CanonicalObject, path: str | Path) -> str:
+    """Write a CanonicalObject to an H5AD file.
+
+    Automatically appends ``.h5ad`` extension if missing.
+    Empty ``obs``/``var`` are filled with synthetic indices.
+
+    Args:
+        obj: The object to write.
+        path: Output file path.
+
+    Returns:
+        The resolved path the file was written to.
+
+    Raises:
+        H5adAdapterError: If writing fails or anndata is not installed.
+    """
     path = Path(path)
     if not path.suffix.lower() == ".h5ad":
         path = path.with_suffix(".h5ad")

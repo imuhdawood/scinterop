@@ -1,3 +1,10 @@
+"""10X MTX format adapter — read/write Market Exchange format.
+
+Supports single ``.mtx[.gz]`` files and 10X Genomics output
+directories. Files store genes x cells; CanonicalObject uses
+cells x genes (transposed automatically).
+"""
+
 from __future__ import annotations
 
 import gzip
@@ -17,6 +24,23 @@ logger = logging.getLogger(__name__)
 
 
 def read_mtx(path: str | Path) -> CanonicalObject:
+    """Read a 10X MTX file or directory into a CanonicalObject.
+
+    If *path* is a **directory**, expects the 10X trio
+    (``matrix.mtx[.gz]``, ``barcodes.tsv[.gz]``, ``features.tsv[.gz]``).
+
+    If *path* is a **file**, reads the matrix alone and auto-generates
+    cell/gene names.
+
+    Args:
+        path: Path to an MTX file or 10X directory.
+
+    Returns:
+        A validated CanonicalObject with X in cells x genes orientation.
+
+    Raises:
+        MtxAdapterError: If the path is not recognised or parsing fails.
+    """
     path = Path(path)
 
     if path.is_dir():
@@ -30,6 +54,21 @@ def read_mtx(path: str | Path) -> CanonicalObject:
 
 
 def write_mtx(obj: CanonicalObject, path: str | Path) -> str:
+    """Write a CanonicalObject to a 10X MTX directory.
+
+    Creates ``matrix.mtx``, ``barcodes.tsv``, and ``features.tsv``.
+    The matrix is written in genes x cells orientation (10X convention).
+
+    Args:
+        obj: The object to write.
+        path: Output directory path (created if it doesn't exist).
+
+    Returns:
+        The path to the created directory.
+
+    Raises:
+        MtxAdapterError: If the path is a file, or writing fails.
+    """
     assert_valid(obj)
     path = Path(path)
 
@@ -110,7 +149,7 @@ def _read_mtx_directory(path: Path) -> CanonicalObject:
     n_cells = len(barcodes)
     n_genes = len(features)
 
-    # 10X convention: file stores genes x cells → transpose to cells x genes
+    # 10X convention: file stores genes x cells -> transpose to cells x genes
     X = X.T.copy()
 
     obs = pd.DataFrame(index=barcodes)

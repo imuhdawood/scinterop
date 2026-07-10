@@ -1,3 +1,12 @@
+"""Command-line interface for scinterop.
+
+Usage::
+
+    scinterop detect <path>
+    scinterop convert <input> <output> [options]
+    scinterop run <script> --executor {r,python} [options]
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -11,6 +20,17 @@ logger = logging.getLogger("scinterop.cli")
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser for the CLI.
+
+    Subcommands:
+
+    - ``detect`` — Detect the format of a single-cell data file.
+    - ``convert`` — Convert between single-cell formats.
+    - ``run`` — Execute an external R or Python script.
+
+    Returns:
+        A configured ``ArgumentParser``.
+    """
     parser = argparse.ArgumentParser(
         prog="scinterop",
         description="Single-cell data interoperability tool",
@@ -80,6 +100,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI entry point.
+
+    Args:
+        argv: Command-line arguments (defaults to ``sys.argv[1:]``).
+
+    Returns:
+        Exit code (0 for success, 1 for errors).
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
 

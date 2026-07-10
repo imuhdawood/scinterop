@@ -1,0 +1,46 @@
+site_name: scinterop
+site_description: Single-cell data interoperability between R and Python formats
+site_url: https://imuhdawood.github.io/scinterop
+repo_url: https://github.com/imuhdawood/scinterop
+edit_uri: blob/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage:
+    - CLI Reference: cli.md
+    - Python API: api.md
+    - Format Detection: detection.md
+  - Adapters:
+    - H5AD: h5ad.md
+    - RDS: rds.md
+    - MTX: mtx.md
+  - Modules:
+    - schema: schema.md
+    - cache: cache.md
+    - provenance: provenance.md
+  - Development: contributing.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [scinterop]
+          options:
+            docstring_style: google
+            show_source: true

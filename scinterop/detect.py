@@ -1,3 +1,10 @@
+"""Auto-detect single-cell data formats from file paths.
+
+The :func:`detect` function identifies format by file extension or
+directory contents without reading the full data. Supports H5AD, RDS,
+and 10X MTX formats.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -25,12 +32,38 @@ MTX_TRIO = {"matrix.mtx", "matrix.mtx.gz", "barcodes.tsv", "barcodes.tsv.gz",
 
 @dataclass
 class Detection:
+    """Result of a format detection call.
+
+    Attributes:
+        fmt: Short format string — ``"h5ad"``, ``"rds"``, or ``"mtx"``.
+        path: The resolved path that was detected.
+        details: Extra information (e.g. extension matched, trio files found).
+    """
+
     fmt: str
     path: Path
     details: dict[str, Any]
 
 
 def detect(path: str | Path) -> Detection:
+    """Detect the format of a single-cell data file or directory.
+
+    Resolution order:
+    1. If path is a **directory**, look for 10X MTX trio files.
+    2. If path is an **existing file**, detect by extension.
+    3. If path **does not exist** but has a recognised extension,
+       infer from extension alone.
+    4. Otherwise raise :class:`DetectionError`.
+
+    Args:
+        path: File path or directory to inspect.
+
+    Returns:
+        A :class:`Detection` with the format, resolved path, and details.
+
+    Raises:
+        DetectionError: If the format cannot be determined.
+    """
     p = Path(path)
 
     details: dict[str, Any] = {}

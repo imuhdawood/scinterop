@@ -1,4 +1,12 @@
+"""scinterop — Single-cell format conversion toolkit.
+
+Convert between H5AD (AnnData), RDS (Seurat), and 10X MTX formats
+while preserving expression data, metadata, dimensional reductions,
+and layer information.
+"""
+
 import logging
+from typing import Any
 
 from . import errors
 from . import cache
@@ -15,7 +23,22 @@ from .validate import validate, assert_valid, ValidationResult
 __version__ = "0.1.0"
 
 
-def read(path: str, **kwargs) -> CanonicalObject:
+def read(path: str, **kwargs: Any) -> CanonicalObject:
+    """Read a single-cell data file into a CanonicalObject.
+
+    Automatically detects format and dispatches to the appropriate
+    reader (H5AD, RDS, or MTX).
+
+    Args:
+        path: Path to a single-cell data file.
+        **kwargs: Forwarded to the format-specific reader.
+
+    Returns:
+        A :class:`CanonicalObject`.
+
+    Raises:
+        DetectionError: If the format is not recognised.
+    """
     detected = detect(path)
     fmt = detected.fmt
     logger = _get_logger()
@@ -41,8 +64,27 @@ def convert(
     r_exe: str = None,
     python_exe: str = None,
     seurat: bool = False,
-    **kwargs,
+    **kwargs: Any,
 ) -> str:
+    """Convert between single-cell data formats.
+
+    Reads the input, writes the output, and logs a provenance record.
+
+    Args:
+        input_path: Source file path.
+        output_path: Destination file or directory path.
+        r_exe: Path to Rscript executable.
+        python_exe: Path to Python executable.
+        seurat: When writing RDS, create a Seurat object.
+        **kwargs: Forwarded to the format-specific writer.
+
+    Returns:
+        The output path string.
+
+    Raises:
+        FormatAdapterError: If the output format is not recognised or
+            conversion fails.
+    """
     import time
     from pathlib import Path
 
@@ -101,11 +143,36 @@ def _resolve_suffix(path):
     )
 
 
-def run_r(script, r_exe=None, **kwargs):
+def run_r(script, r_exe=None, **kwargs: Any):
+    """Run an R script via the R runner.
+
+    Shortcut for :func:`r_runner.run_r`.
+
+    Args:
+        script: Path to a ``.R`` file or inline R code.
+        r_exe: Path to Rscript executable.
+        **kwargs: Forwarded to :func:`r_runner.run_r`.
+
+    Returns:
+        An :class:`r_runner.RExecResult`.
+    """
     return r_runner.run_r(script, r_exe=r_exe, **kwargs)
 
 
-def run_python(script, python_exe=None, conda_env=None, **kwargs):
+def run_python(script, python_exe=None, conda_env=None, **kwargs: Any):
+    """Run a Python script via the Python runner.
+
+    Shortcut for :func:`python_runner.run_python`.
+
+    Args:
+        script: Path to a ``.py`` file or inline Python code.
+        python_exe: Path to Python executable.
+        conda_env: Conda environment name.
+        **kwargs: Forwarded to :func:`python_runner.run_python`.
+
+    Returns:
+        A :class:`python_runner.PythonExecResult`.
+    """
     return python_runner.run_python(
         script, python_exe=python_exe, conda_env=conda_env, **kwargs
     )

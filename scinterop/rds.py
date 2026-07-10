@@ -1,3 +1,10 @@
+"""RDS format adapter — read/write Seurat R objects via an R bridge.
+
+Requires R with the ``anndata`` and (for Seurat objects) ``Seurat``
+R packages installed. Conversion is done by writing an intermediate
+H5AD file and invoking R as a subprocess.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -97,7 +104,7 @@ if (is_seurat) {{
         stop("RDS list is missing required components: ", paste(missing, collapse = ", "))
     }}
 
-    X <- as.matrix(obj[["X"]])
+    X <- obj[["X"]]
     obs_df <- obj[["obs"]]
     var_df <- obj[["var"]]
 
@@ -116,13 +123,13 @@ if (is_seurat) {{
 
     if (!is.null(obj[["obsm"]])) {{
         for (key in names(obj[["obsm"]])) {{
-            adata$obsm[[key]] <- as.matrix(obj[["obsm"]][[key]])
+            adata$obsm[[key]] <- obj[["obsm"]][[key]]
         }}
     }}
 
     if (!is.null(obj[["layers"]])) {{
         for (key in names(obj[["layers"]])) {{
-            adata$layers[[key]] <- as.matrix(obj[["layers"]][[key]])
+            adata$layers[[key]] <- obj[["layers"]][[key]]
         }}
     }}
 
@@ -164,7 +171,7 @@ obsm_names <- names(adata$obsm)
 if (length(obsm_names) > 0) {{
     result$obsm <- list()
     for (key in obsm_names) {{
-        result$obsm[[key]] <- as.matrix(adata$obsm[[key]])
+        result$obsm[[key]] <- adata$obsm[[key]]
     }}
 }}
 
@@ -172,7 +179,7 @@ layer_names <- names(adata$layers)
 if (length(layer_names) > 0) {{
     result$layers <- list()
     for (key in layer_names) {{
-        result$layers[[key]] <- as.matrix(adata$layers[[key]])
+        result$layers[[key]] <- adata$layers[[key]]
     }}
 }}
 
@@ -264,6 +271,21 @@ cat("Seurat object saved to:", output_rds, "\n")
 
 
 def read_rds(path: str | Path, *, r_exe: str | None = None) -> CanonicalObject:
+    """Read an RDS file (Seurat or plain R list) into a CanonicalObject.
+
+    Uses an intermediate H5AD file written by the R ``anndata`` package.
+
+    Args:
+        path: Path to an ``.rds`` file.
+        r_exe: Path to Rscript executable.
+
+    Returns:
+        A validated CanonicalObject.
+
+    Raises:
+        RdsAdapterError: If the file doesn't exist, R fails, or the
+            intermediate H5AD is not produced.
+    """
     path = Path(path)
     if not path.exists():
         raise RdsAdapterError(f"File does not exist: {path}")
@@ -311,6 +333,23 @@ def write_rds(
     seurat: bool = False,
     r_exe: str | None = None,
 ) -> str:
+    """Write a CanonicalObject to an RDS file.
+
+    Uses an intermediate H5AD file and the R ``anndata`` package.
+
+    Args:
+        obj: The object to write.
+        path: Output ``.rds`` file path (extension added if missing).
+        seurat: If True, create a Seurat object; otherwise a plain R list.
+        r_exe: Path to Rscript executable.
+
+    Returns:
+        The resolved path the file was written to.
+
+    Raises:
+        RdsAdapterError: If writing the intermediate H5AD fails, the R
+            script fails, or the output is not produced.
+    """
     assert_valid(obj)
     path = Path(path)
     if not path.suffix.lower() == ".rds":
