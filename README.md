@@ -305,21 +305,21 @@ obj = si.rds.read_rds("seurat_object.rds")
 2. Access from R with `result$X`, `result$obs`, etc.
 
 **Required R packages:**
-- Reading: `anndata` (for both Seurat and list)
+- Reading: `anndata` (for both Seurat and list); `qs` (for .qs files)
 - Writing (Seurat): `anndata`, `Seurat`, `Matrix`
-- Writing (list): `anndata`
+- Writing (list): `anndata`; `qs` (for .qs output)
 
 **Installing R dependencies (conda, recommended):**
 ```bash
-conda install -n scinterop r-base r-seurat r-matrix r-anndata \
+conda install -n scinterop r-base r-seurat r-matrix r-anndata r-qs \
   -c conda-forge -c bioconda -y
 ```
 
-This installs R 4.5 + Seurat 5.5 + Matrix + anndata R package in your scinterop env, no separate CRAN install or compilation needed.
+This installs R 4.5 + Seurat 5.5 + Matrix + anndata + qs R packages in your scinterop env, no separate CRAN install or compilation needed.
 
 **Verification:**
 ```bash
-conda run -n scinterop R -e 'library(anndata); library(Seurat); cat("OK\n")'
+conda run -n scinterop R -e 'library(anndata); library(Seurat); library(qs); cat("OK\n")'
 ```
 
 The R script fails with a clear message if packages are missing:
